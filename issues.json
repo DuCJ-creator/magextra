@@ -1,0 +1,28 @@
+{
+  "magazines": [
+    {
+      "id": "allplus",
+      "label": "ALL PLUS",
+      "issues": [
+        {
+          "code": "26sep",
+          "year": 2026,
+          "month": "sep",
+          "path": "allplus/26sep.html"
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "label": "LIVE",
+      "issues": [
+        {
+          "code": "26sep",
+          "year": 2026,
+          "month": "sep",
+          "path": "live/26sep.html"
+        }
+      ]
+    }
+  ]
+}

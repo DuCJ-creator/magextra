@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MAG EXTRA 雜誌線上互動練習入口，依期數選擇 ALL PLUS、LIVE 與其他雜誌。">
+  <title>MAG EXTRA｜雜誌互動練習</title>
+  <style>
+    :root {
+      --navy: #17324d;
+      --blue: #236a91;
+      --sky: #dbeef4;
+      --paper: #fffdf8;
+      --sand: #f4efe5;
+      --coral: #e27055;
+      --gold: #e2b34e;
+      --ink: #1e313b;
+      --muted: #6a777d;
+      --line: #d9d4ca;
+      --shadow: 0 18px 50px rgba(23, 50, 77, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 92% 3%, rgba(226, 179, 78, .22), transparent 24rem),
+        linear-gradient(180deg, #edf6f7 0, var(--sand) 29rem);
+      font-family: "Noto Sans TC", "PingFang TC", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, a { font: inherit; }
+    a { color: inherit; }
+    .shell { width: min(1160px, calc(100% - 36px)); margin: 0 auto; }
+
+    header { padding: 64px 0 42px; }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .76rem;
+      font-weight: 900;
+      letter-spacing: .17em;
+      color: var(--blue);
+    }
+    .brand::before {
+      content: "";
+      width: 30px;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--coral) 0 50%, var(--gold) 50%);
+    }
+    h1 {
+      max-width: 760px;
+      margin: 18px 0 14px;
+      color: var(--navy);
+      font-family: Georgia, "Noto Serif TC", serif;
+      font-size: clamp(2.65rem, 7vw, 5.8rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+    }
+    .intro {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.14rem);
+      line-height: 1.75;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 8px 0 24px;
+    }
+    .toolbar h2 { margin: 0; color: var(--navy); font-size: 1.25rem; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .filter {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--navy);
+      background: rgba(255, 253, 248, .72);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .filter:hover, .filter:focus-visible { border-color: var(--blue); }
+    .filter.active { color: white; border-color: var(--navy); background: var(--navy); }
+
+    .issues { display: grid; gap: 18px; padding-bottom: 64px; }
+    .issue {
+      display: grid;
+      grid-template-columns: minmax(150px, .38fr) minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(23, 50, 77, .11);
+      border-radius: 22px;
+      background: rgba(255, 253, 248, .91);
+      box-shadow: var(--shadow);
+    }
+    .date {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 158px;
+      padding: 26px;
+      color: white;
+      background: var(--navy);
+    }
+    .year { font-size: .79rem; font-weight: 800; letter-spacing: .14em; opacity: .7; }
+    .month { margin-top: 3px; font-family: Georgia, serif; font-size: 2.45rem; line-height: 1; }
+    .month-zh { margin-top: 7px; font-size: .84rem; opacity: .74; }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      align-content: center;
+      gap: 12px;
+      padding: 24px;
+    }
+    .choice {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 15px 17px;
+      text-decoration: none;
+      background: white;
+    }
+    a.choice { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    a.choice:hover, a.choice:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--blue);
+      box-shadow: 0 9px 22px rgba(35, 106, 145, .13);
+      outline: none;
+    }
+    .magazine-name { color: var(--navy); font-weight: 900; letter-spacing: .035em; }
+    .status { color: var(--blue); font-size: .8rem; font-weight: 800; white-space: nowrap; }
+    .status::after { content: " →"; }
+    .choice.unavailable { color: #8e9699; background: #f3f1ec; border-style: dashed; }
+    .choice.unavailable .magazine-name { color: inherit; }
+    .choice.unavailable .status { color: inherit; font-weight: 600; }
+    .choice.unavailable .status::after { content: ""; }
+
+    .message {
+      padding: 34px;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      color: var(--muted);
+      background: rgba(255,255,255,.6);
+      text-align: center;
+      line-height: 1.7;
+    }
+    footer { padding: 0 0 34px; color: var(--muted); font-size: .78rem; }
+
+    @media (max-width: 660px) {
+      header { padding-top: 42px; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .filters { justify-content: flex-start; }
+      .issue { grid-template-columns: 1fr; }
+      .date { min-height: 0; padding: 19px 22px; }
+      .month { font-size: 2rem; }
+      .choices { grid-template-columns: 1fr; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell">
+    <div class="brand">MAG EXTRA</div>
+    <h1>Choose an issue.<br>Start practicing.</h1>
+    <p class="intro">選擇期數與雜誌，開始線上互動練習。已上線的練習可直接開啟；尚未發布的期數會自動顯示為「即將上線」。</p>
+  </header>
+
+  <main class="shell">
+    <div class="toolbar">
+      <h2>所有期數</h2>
+      <div class="filters" id="filters" aria-label="依雜誌篩選"></div>
+    </div>
+    <div class="issues" id="issues" aria-live="polite">
+      <div class="message">正在讀取練習清單⋯</div>
+    </div>
+  </main>
+
+  <footer class="shell">MAG EXTRA · Interactive Magazine Practice</footer>
+
+  <script>
+    const MONTHS = [
+      { code: 'jan', en: 'January', zh: '一月' },
+      { code: 'feb', en: 'February', zh: '二月' },
+      { code: 'mar', en: 'March', zh: '三月' },
+      { code: 'apr', en: 'April', zh: '四月' },
+      { code: 'may', en: 'May', zh: '五月' },
+      { code: 'jun', en: 'June', zh: '六月' },
+      { code: 'jul', en: 'July', zh: '七月' },
+      { code: 'aug', en: 'August', zh: '八月' },
+      { code: 'sep', en: 'September', zh: '九月' },
+      { code: 'oct', en: 'October', zh: '十月' },
+      { code: 'nov', en: 'November', zh: '十一月' },
+      { code: 'dec', en: 'December', zh: '十二月' }
+    ];
+    const FUTURE_MONTHS = 4;
+    let catalog;
+    let activeMagazine = 'all';
+
+    const esc = value => String(value).replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+
+    function serial(year, monthIndex) { return year * 12 + monthIndex; }
+    function fromSerial(value) { return { year: Math.floor(value / 12), month: value % 12 }; }
+    function issueSerial(issue) { return serial(issue.year, MONTHS.findIndex(month => month.code === issue.month)); }
+    function shortCode(year, month) { return String(year).slice(-2) + MONTHS[month].code; }
+
+    function renderFilters() {
+      const items = [{ id: 'all', label: '全部雜誌' }, ...catalog.magazines];
+      document.getElementById('filters').innerHTML = items.map(item =>
+        `<button class="filter${item.id === activeMagazine ? ' active' : ''}" data-filter="${esc(item.id)}">${esc(item.label)}</button>`
+      ).join('');
+      document.querySelectorAll('[data-filter]').forEach(button => {
+        button.addEventListener('click', () => {
+          activeMagazine = button.dataset.filter;
+          renderFilters();
+          renderIssues();
+        });
+      });
+    }
+
+    function renderIssues() {
+      const all = catalog.magazines.flatMap(magazine => magazine.issues);
+      const first = Math.min(...all.map(issueSerial));
+      const lastAvailable = Math.max(...all.map(issueSerial));
+      const end = lastAvailable + FUTURE_MONTHS;
+      const magazines = activeMagazine === 'all'
+        ? catalog.magazines
+        : catalog.magazines.filter(magazine => magazine.id === activeMagazine);
+      const rows = [];
+
+      for (let value = end; value >= first; value--) {
+        const { year, month } = fromSerial(value);
+        const code = shortCode(year, month);
+        const choices = magazines.map(magazine => {
+          const issue = magazine.issues.find(item => item.code === code);
+          return issue
+            ? `<a class="choice" href="${esc(issue.path)}"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">開始練習</span></a>`
+            : `<span class="choice unavailable" aria-disabled="true"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">即將上線</span></span>`;
+        }).join('');
+        rows.push(`<section class="issue">
+          <div class="date"><span class="year">${year}</span><span class="month">${MONTHS[month].en}</span><span class="month-zh">${MONTHS[month].zh}號</span></div>
+          <div class="choices">${choices}</div>
+        </section>`);
+      }
+      document.getElementById('issues').innerHTML = rows.join('');
+    }
+
+    fetch('./issues.json', { cache: 'no-store' })
+      .then(response => {
+        if (!response.ok) throw new Error('Catalog unavailable');
+        return response.json();
+      })
+      .then(data => {
+        catalog = data;
+        if (!catalog.magazines?.length || !catalog.magazines.some(magazine => magazine.issues.length)) {
+          throw new Error('No issues found');
+        }
+        renderFilters();
+        renderIssues();
+      })
+      .catch(() => {
+        document.getElementById('issues').innerHTML = '<div class="message">目前無法讀取練習清單，請稍後重新整理頁面。</div>';
+      });
+  </script>
+</body>
+</html>
