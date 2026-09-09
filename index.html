@@ -220,6 +220,50 @@
     }
     footer { padding: 0 0 34px; color: var(--muted); font-size: .78rem; }
 
+    .exercise-view {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100dvh;
+      background: var(--paper);
+    }
+    .exercise-view[hidden] { display: none; }
+    .exercise-bar {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 14px clamp(16px, 3vw, 44px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 248, .97);
+    }
+    .exercise-bar .back,
+    .exercise-bar .external {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: max-content;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 16px;
+      color: var(--navy);
+      background: white;
+      font-weight: 850;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .exercise-bar .back:hover,
+    .exercise-bar .external:hover,
+    .exercise-bar .back:focus-visible,
+    .exercise-bar .external:focus-visible { border-color: var(--blue); outline: none; }
+    .exercise-title { margin: 0; color: var(--navy); font-family: Georgia, "Noto Serif TC", serif; font-size: 1.16rem; text-align: center; }
+    .exercise-bar .external { justify-self: end; }
+    .exercise-frame { width: 100%; height: 100%; border: 0; background: var(--sand); }
+    body.viewer-open { overflow: hidden; }
+
     @media (max-width: 660px) {
       header { padding: 26px 0 20px; }
       .toolbar { align-items: flex-start; flex-direction: column; }
@@ -231,6 +275,10 @@
       .timeline-columns { grid-template-columns: 1fr; }
       .timeline-panel { padding: 16px; }
       .timeline-item { grid-template-columns: 94px minmax(0, 1fr); }
+      .exercise-bar { grid-template-columns: 1fr auto; gap: 10px; padding: 10px 12px; }
+      .exercise-title { grid-column: 1 / -1; grid-row: 1; font-size: 1rem; }
+      .exercise-bar .back { grid-column: 1; grid-row: 2; }
+      .exercise-bar .external { grid-column: 2; grid-row: 2; }
     }
   </style>
 </head>
@@ -252,6 +300,15 @@
   </main>
 
   <footer class="shell">MAG EXTRA · Interactive Magazine Practice</footer>
+
+  <section class="exercise-view" id="exerciseView" aria-label="互動練習" hidden>
+    <div class="exercise-bar">
+      <button class="back" id="backToList" type="button">← 返回列表</button>
+      <h2 class="exercise-title" id="exerciseTitle">互動練習</h2>
+      <a class="external" id="openExternal" href="#" target="_blank" rel="noopener">在新分頁開啟 ↗</a>
+    </div>
+    <iframe class="exercise-frame" id="exerciseFrame" title="雜誌互動練習"></iframe>
+  </section>
 
   <script>
     const MONTHS = [
@@ -280,6 +337,44 @@
     function fromSerial(value) { return { year: Math.floor(value / 12), month: value % 12 }; }
     function issueSerial(issue) { return serial(issue.year, MONTHS.findIndex(month => month.code === issue.month)); }
     function shortCode(year, month) { return String(year).slice(-2) + MONTHS[month].code; }
+
+    function detailsFor(path) {
+      for (const magazine of catalog.magazines) {
+        const issue = magazine.issues.find(item => item.path === path);
+        if (issue) {
+          const month = MONTHS.find(item => item.code === issue.month);
+          return { magazine, issue, month };
+        }
+      }
+      return null;
+    }
+
+    function showExercise(path, addHistory = true) {
+      const details = detailsFor(path);
+      if (!details) return;
+      const title = `${details.magazine.label} · ${details.month.en} ${details.issue.year}`;
+      document.getElementById('exerciseTitle').textContent = title;
+      document.getElementById('exerciseFrame').src = path;
+      document.getElementById('exerciseFrame').title = `${title} 互動練習`;
+      document.getElementById('openExternal').href = path;
+      document.getElementById('exerciseView').hidden = false;
+      document.body.classList.add('viewer-open');
+      if (addHistory) history.pushState({ practice: path }, '', `#practice=${encodeURIComponent(path)}`);
+    }
+
+    function showList() {
+      document.getElementById('exerciseView').hidden = true;
+      document.getElementById('exerciseFrame').removeAttribute('src');
+      document.body.classList.remove('viewer-open');
+    }
+
+    function syncViewWithLocation() {
+      if (!catalog) return;
+      const params = new URLSearchParams(location.hash.slice(1));
+      const path = params.get('practice');
+      if (path && detailsFor(path)) showExercise(path, false);
+      else showList();
+    }
 
     function renderFilters() {
       const items = [{ id: 'all', label: '全部雜誌' }, ...catalog.magazines];
@@ -361,10 +456,28 @@
         }
         renderFilters();
         renderIssues();
+        syncViewWithLocation();
       })
       .catch(() => {
         document.getElementById('issues').innerHTML = '<div class="message">目前無法讀取練習清單，請稍後重新整理頁面。</div>';
       });
+
+    document.getElementById('issues').addEventListener('click', event => {
+      const link = event.target.closest('a.choice');
+      if (!link) return;
+      event.preventDefault();
+      showExercise(link.getAttribute('href'));
+    });
+
+    document.getElementById('backToList').addEventListener('click', () => {
+      if (history.state?.practice) history.back();
+      else {
+        history.replaceState(null, '', `${location.pathname}${location.search}`);
+        showList();
+      }
+    });
+    window.addEventListener('popstate', syncViewWithLocation);
+    window.addEventListener('hashchange', syncViewWithLocation);
   </script>
 </body>
 </html>
