@@ -91,7 +91,15 @@
     .filter:hover, .filter:focus-visible { border-color: var(--blue); }
     .filter.active { color: white; border-color: var(--navy); background: var(--navy); }
 
-    .issues { display: grid; gap: 18px; padding-bottom: 64px; }
+    .issues { padding-bottom: 64px; }
+    .section-label {
+      margin: 0 0 12px;
+      color: var(--blue);
+      font-size: .76rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
     .issue {
       display: grid;
       grid-template-columns: minmax(150px, .38fr) minmax(0, 1fr);
@@ -147,6 +155,60 @@
     .choice.unavailable .status { color: inherit; font-weight: 600; }
     .choice.unavailable .status::after { content: ""; }
 
+    .timeline-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .timeline-panel {
+      padding: 22px;
+      border: 1px solid rgba(23, 50, 77, .11);
+      border-radius: 22px;
+      background: rgba(255, 253, 248, .78);
+    }
+    .timeline-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .timeline-head h3 { margin: 0; color: var(--navy); font-family: Georgia, serif; font-size: 1.45rem; }
+    .timeline-head span { color: var(--muted); font-size: .78rem; }
+    .timeline-list { display: grid; gap: 12px; }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 108px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--paper);
+    }
+    .timeline-date {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px;
+      color: white;
+      background: var(--navy);
+    }
+    .timeline-date strong { font-family: Georgia, serif; font-size: 1.05rem; }
+    .timeline-date span { margin-top: 3px; font-size: .72rem; opacity: .7; }
+    .timeline-choices { display: grid; gap: 8px; padding: 10px; }
+    .timeline-choices .choice { min-height: 54px; padding: 10px 12px; border-radius: 10px; }
+    .empty-state {
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      border: 1px dashed var(--line);
+      border-radius: 15px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
     .message {
       padding: 34px;
       border: 1px dashed var(--line);
@@ -166,6 +228,9 @@
       .date { min-height: 0; padding: 19px 22px; }
       .month { font-size: 2rem; }
       .choices { grid-template-columns: 1fr; padding: 16px; }
+      .timeline-columns { grid-template-columns: 1fr; }
+      .timeline-panel { padding: 16px; }
+      .timeline-item { grid-template-columns: 94px minmax(0, 1fr); }
     }
   </style>
 </head>
@@ -178,7 +243,7 @@
 
   <main class="shell">
     <div class="toolbar">
-      <h2>所有期數</h2>
+      <h2>本月練習</h2>
       <div class="filters" id="filters" aria-label="依雜誌篩選"></div>
     </div>
     <div class="issues" id="issues" aria-live="polite">
@@ -230,31 +295,58 @@
       });
     }
 
+    function choicesFor(value, magazines) {
+      const { year, month } = fromSerial(value);
+      const code = shortCode(year, month);
+      return magazines.map(magazine => {
+        const issue = magazine.issues.find(item => item.code === code);
+        return issue
+          ? `<a class="choice" href="${esc(issue.path)}"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">開始練習</span></a>`
+          : `<span class="choice unavailable" aria-disabled="true"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">尚未上線</span></span>`;
+      }).join('');
+    }
+
+    function timelineItem(value, magazines) {
+      const { year, month } = fromSerial(value);
+      return `<article class="timeline-item">
+        <div class="timeline-date"><strong>${MONTHS[month].en.slice(0, 3)}</strong><span>${year} · ${MONTHS[month].zh}</span></div>
+        <div class="timeline-choices">${choicesFor(value, magazines)}</div>
+      </article>`;
+    }
+
     function renderIssues() {
-      const all = catalog.magazines.flatMap(magazine => magazine.issues);
-      const first = Math.min(...all.map(issueSerial));
-      const lastAvailable = Math.max(...all.map(issueSerial));
-      const end = lastAvailable + FUTURE_MONTHS;
+      const now = new Date();
+      const current = serial(now.getFullYear(), now.getMonth());
       const magazines = activeMagazine === 'all'
         ? catalog.magazines
         : catalog.magazines.filter(magazine => magazine.id === activeMagazine);
-      const rows = [];
+      const allAvailable = magazines.flatMap(magazine => magazine.issues);
+      const previousValues = [...new Set(allAvailable.map(issueSerial))]
+        .filter(value => value < current)
+        .sort((a, b) => b - a);
+      const followingValues = Array.from({ length: FUTURE_MONTHS }, (_, index) => current + index + 1);
+      const { year, month } = fromSerial(current);
+      const previous = previousValues.length
+        ? previousValues.map(value => timelineItem(value, magazines)).join('')
+        : '<div class="empty-state">目前還沒有過往期數</div>';
+      const following = followingValues.map(value => timelineItem(value, magazines)).join('');
 
-      for (let value = end; value >= first; value--) {
-        const { year, month } = fromSerial(value);
-        const code = shortCode(year, month);
-        const choices = magazines.map(magazine => {
-          const issue = magazine.issues.find(item => item.code === code);
-          return issue
-            ? `<a class="choice" href="${esc(issue.path)}"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">開始練習</span></a>`
-            : `<span class="choice unavailable" aria-disabled="true"><span class="magazine-name">${esc(magazine.label)}</span><span class="status">即將上線</span></span>`;
-        }).join('');
-        rows.push(`<section class="issue">
+      document.getElementById('issues').innerHTML = `
+        <div class="section-label">Current issue</div>
+        <section class="issue">
           <div class="date"><span class="year">${year}</span><span class="month">${MONTHS[month].en}</span><span class="month-zh">${MONTHS[month].zh}號</span></div>
-          <div class="choices">${choices}</div>
-        </section>`);
-      }
-      document.getElementById('issues').innerHTML = rows.join('');
+          <div class="choices">${choicesFor(current, magazines)}</div>
+        </section>
+        <div class="timeline-columns">
+          <section class="timeline-panel">
+            <div class="timeline-head"><h3>Previous Issues</h3><span>過往期數</span></div>
+            <div class="timeline-list">${previous}</div>
+          </section>
+          <section class="timeline-panel">
+            <div class="timeline-head"><h3>Following Issues</h3><span>接續期數</span></div>
+            <div class="timeline-list">${following}</div>
+          </section>
+        </div>`;
     }
 
     fetch('./issues.json', { cache: 'no-store' })
