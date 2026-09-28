@@ -23,6 +23,30 @@
           "path": "live/26sep.html"
         }
       ]
+    }，
+    {
+      "id": "allplus",
+      "label": "ALL PLUS",
+      "issues": [
+        {
+          "code": "26oct",
+          "year": 2026,
+          "month": "oct",
+          "path": "allplus/26oct.html"
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "label": "LIVE",
+      "issues": [
+        {
+          "code": "26oct",
+          "year": 2026,
+          "month": "oct",
+          "path": "live/26oct.html"
+        }
+      ]
     }
   ]
 }
