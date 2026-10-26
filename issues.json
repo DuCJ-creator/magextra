@@ -15,6 +15,12 @@
           "year": 2026,
           "month": "oct",
           "path": "allplus/26oct.html"
+        },
+         {
+          "code": "26nov",
+          "year": 2026,
+          "month": "nov",
+          "path": "allplus/26nov.html"
         }
       ]
     },
@@ -33,6 +39,12 @@
           "year": 2026,
           "month": "oct",
           "path": "live/26oct.html"
+        },
+        {
+          "code": "26nov",
+          "year": 2026,
+          "month": "nov",
+          "path": "live/26nov.html"
         }
       ]
     }
